@@ -68,22 +68,25 @@
 
 /* ---- 연주 모드 ---- */
 #screen-performance { padding:0; max-width:none; }
-.p-bar { position:sticky; top:0; z-index:5; display:flex; align-items:center; gap:14px;
+#screen-performance.active { display:flex; flex-direction:column; position:fixed; inset:0;
+  z-index:20; background:var(--bg); }
+.p-bar { flex-shrink:0; display:flex; align-items:center; gap:14px;
   background:var(--surface); border-bottom:1px solid var(--line); padding:10px 16px; }
 .p-bar b { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
 #p-exit { color:var(--warn); font-weight:700; flex-shrink:0; }
 #p-next { margin-left:auto; flex-shrink:0; }
+.p-wrap { flex:1; overflow-y:auto; }
 .p-sheet { padding:20px 18px 45vh; }
 .p-sheet .v-seg em { font-size:20px; }
 .p-sheet .v-seg i { font-size:16px; min-height:24px; }
 .p-chord { padding:1px 6px; border-radius:6px; }
 .p-chord.now { background:var(--accent); color:var(--on-accent); }
-.p-tap { position:fixed; top:56px; bottom:0; width:18%; z-index:4; }
+/* 탭 존: 비스크롤 스크린 기준 절대 배치 — 네이티브/회전 폴백 모두 지역 좌표 = 체감 좌표 */
+.p-tap { position:absolute; top:56px; bottom:0; width:18%; z-index:4; }
 .p-tap.left { left:0; } .p-tap.right { right:0; }
 /* 네이티브 가로 고정 실패 시 CSS 회전 폴백 (세로 화면에서만) */
 @media (orientation: portrait) {
-  body.landscape #screen-performance.active { position:fixed; inset:auto;
+  body.landscape #screen-performance.active { inset:auto;
     transform:rotate(90deg); transform-origin:center;
-    width:100vh; height:100vw; top:calc((100vh - 100vw)/2); left:calc((100vw - 100vh)/2);
-    overflow-y:auto; }
+    width:100vh; height:100vw; top:calc((100vh - 100vw)/2); left:calc((100vw - 100vh)/2); }
 }

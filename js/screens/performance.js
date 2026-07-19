@@ -31,7 +31,8 @@ function setIdx(i) {
   hits = 0;
   const cur = flat[idx];
   cur.el.classList.add('now');
-  cur.el.scrollIntoView({ block: 'center', behavior: 'smooth' });
+  // 즉시 스크롤: smooth 애니메이션은 환경에 따라 동작하지 않을 수 있고, 연주 추적엔 즉시 이동이 확실함
+  cur.el.scrollIntoView({ block: 'center' });
   root.querySelector('#p-next').textContent =
     flat[idx + 1] ? `다음: ${flat[idx + 1].chord}` : '마지막 코드';
 }
@@ -60,7 +61,7 @@ function render() {
       <b>${esc(song.title)}</b>
       <span id="p-next" class="muted"></span>
     </div>
-    <div class="p-sheet" id="p-sheet">
+    <div class="p-wrap"><div class="p-sheet" id="p-sheet">
       ${song.sections.map(s => `
         <div class="v-section"><div class="v-secname">${esc(s.name)}</div>
           ${s.lines.map(l => {
@@ -77,7 +78,7 @@ function render() {
             return `<div class="v-line">${html}</div>`;
           }).join('')}
         </div>`).join('')}
-    </div>
+    </div></div>
     <div class="p-tap left" id="p-prev-zone" aria-label="이전 코드"></div>
     <div class="p-tap right" id="p-next-zone" aria-label="다음 코드"></div>`;
 
