@@ -7,6 +7,7 @@ import { detectPitch } from '../audio/pitch.js';
 const root = document.getElementById('screen-tuner');
 let selected = null;   // null = 자동 감지, 아니면 GUITAR_STRINGS 항목
 let raf = 0, wasOk = false;
+let lastTargetNo = 0;   // 자동 감지 시 대상 줄 변경 감지용
 const recentCents = [];   // 노이즈 지터 완화용 최근 판독값 (중앙값 표시)
 
 const a4 = () => Number(localStorage.getItem('st_a4')) || 440;
@@ -37,6 +38,7 @@ root.querySelector('#string-row').addEventListener('click', e => {
   playKalimba(noteToFreq(s.midi, a4()));
   selected = selected?.no === s.no ? null : s;
   recentCents.length = 0;
+  wasOk = false;
   root.querySelectorAll('.string-btn').forEach(b =>
     b.classList.toggle('selected', Number(b.dataset.no) === selected?.no));
 });
@@ -59,6 +61,7 @@ function update() {
     if (freq) {
       const note = freqToNote(freq, a4());
       const target = selected || nearestString(note.midi);
+      if (target.no !== lastTargetNo) { recentCents.length = 0; wasOk = false; lastTargetNo = target.no; }
       const raw = Math.max(-50, Math.min(50,
         Math.round(1200 * Math.log2(freq / noteToFreq(target.midi, a4())))));
       recentCents.push(raw);
@@ -91,4 +94,4 @@ async function start() {
 }
 
 registerScreen('tuner', () => start());
-registerLeave('tuner', () => { cancelAnimationFrame(raf); stopMic(); });
+registerLeave('tuner', () => { cancelAnimationFrame(raf); stopMic(); wasOk = false; });
