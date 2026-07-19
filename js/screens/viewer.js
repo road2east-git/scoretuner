@@ -11,7 +11,10 @@ const esc = s => String(s ?? '').replace(/[&<>"']/g,
 const root = document.getElementById('screen-viewer');
 let song = null, tabMode = false;
 
-const shiftChord = c => song.keyShift ? toEasy(transposeChord(c, song.keyShift)) : c;
+const shiftChord = c => {
+  const ks = Number(song.keyShift) || 0;
+  return ks ? toEasy(transposeChord(c, ks)) : c;
+};
 
 function uniqueChords() {
   const set = new Set();
@@ -36,7 +39,9 @@ function lineHTML(line) {
 
 function render() {
   const pat = getPattern(song.patternId);
-  const capoInfo = song.capo ? `카포 ${song.capo}프렛이면 원곡 키` : '';
+  const capo = Number(song.capo) || 0;
+  const keyShift = Number(song.keyShift) || 0;
+  const capoInfo = capo ? `카포 ${capo}프렛이면 원곡 키` : '';
   root.innerHTML = `
     <div class="v-head">
       <button id="v-back" aria-label="뒤로">←</button>
@@ -48,7 +53,7 @@ function render() {
       <div class="v-key">
         <span class="set-label">키</span>
         <button class="key-btn" id="v-key-down">▼</button>
-        <b id="v-key-val">${song.keyShift > 0 ? '+' : ''}${song.keyShift || 0}</b>
+        <b id="v-key-val">${keyShift > 0 ? '+' : ''}${keyShift}</b>
         <button class="key-btn" id="v-key-up">▲</button>
       </div>
       <label class="v-tab-toggle"><input type="checkbox" id="v-tab" ${tabMode ? 'checked' : ''}> TAB</label>
@@ -80,7 +85,7 @@ function render() {
 }
 
 async function shiftKey(d) {
-  song.keyShift = Math.max(-6, Math.min(6, (song.keyShift || 0) + d));
+  song.keyShift = Math.max(-6, Math.min(6, (Number(song.keyShift) || 0) + d));
   await saveSong(song);
   render();
 }

@@ -67,6 +67,9 @@ export async function importBackup(file) {
     if (typeof s?.id === 'string' && typeof s.title === 'string' && s.title.trim() &&
         Array.isArray(s.sections)) {
       if (s.artist != null && typeof s.artist !== 'string') s.artist = String(s.artist);
+      s.capo = Number(s.capo) || 0;
+      s.keyShift = Math.max(-6, Math.min(6, Number(s.keyShift) || 0));
+      s.semitones = Number(s.semitones) || 0;
       await saveSong(s);
       saved++;
     }
