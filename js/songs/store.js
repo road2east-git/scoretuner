@@ -23,7 +23,7 @@ async function withStore(mode, fn) {
   return new Promise((resolve, reject) => {
     const tx = db.transaction(STORE, mode);
     const result = fn(tx.objectStore(STORE));
-    tx.oncomplete = () => resolve(result.result ?? result);
+    tx.oncomplete = () => resolve(result.result);
     tx.onerror = () => reject(tx.error);
   });
 }
@@ -47,12 +47,15 @@ export async function exportBackup() {
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob);
   a.download = `scoretuner-backup-${new Date().toISOString().slice(0, 10)}.json`;
+  document.body.appendChild(a);
   a.click();
-  URL.revokeObjectURL(a.href);
+  a.remove();
+  setTimeout(() => URL.revokeObjectURL(a.href), 1000);
 }
 export async function importBackup(file) {
   const songs = JSON.parse(await file.text());
   if (!Array.isArray(songs)) throw new Error('백업 파일 형식이 아닙니다');
-  for (const s of songs) if (s.id && s.title && s.sections) await saveSong(s);
-  return songs.length;
+  let saved = 0;
+  for (const s of songs) if (s.id && s.title && s.sections) { await saveSong(s); saved++; }
+  return saved;
 }
