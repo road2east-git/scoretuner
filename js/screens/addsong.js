@@ -89,7 +89,7 @@ $('#add-save').addEventListener('click', async () => {
 $('#add-ai').addEventListener('click', async () => {
   const title = $('#add-title').value.trim();
   if (!title) return status('노래 제목을 입력해주세요.', true);
-  if (!hasApiKey()) return status('설정에서 Claude API 키를 먼저 등록해주세요.', true);
+  if (!hasApiKey()) return status('설정에서 AI 제공자의 API 키를 먼저 등록해주세요.', true);
   status('AI가 악보를 만드는 중… (10~30초)');
   $('#add-ai').disabled = true;
   const targetId = editingId;
@@ -112,7 +112,7 @@ $('#add-ai').addEventListener('click', async () => {
 $('#add-image').addEventListener('change', async e => {
   const files = e.target.files;
   if (!files.length) return;
-  if (!hasApiKey()) { e.target.value = ''; return status('설정에서 Claude API 키를 먼저 등록해주세요.', true); }
+  if (!hasApiKey()) { e.target.value = ''; return status('설정에서 AI 제공자의 API 키를 먼저 등록해주세요.', true); }
   const total = files.length;
   const used = Math.min(total, 4);
   status(used < total

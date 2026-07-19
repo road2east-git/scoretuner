@@ -14,9 +14,21 @@ root.innerHTML = `
     <input id="set-a4" type="number" min="415" max="466" step="1">
   </div>
   <div class="card set-group">
+    <label class="set-label" for="set-provider">AI 제공자 (곡 생성·이미지 인식)</label>
+    <select id="set-provider">
+      <option value="claude">Claude</option>
+      <option value="gemini">Gemini (무료 할당량 있음)</option>
+    </select>
+  </div>
+  <div class="card set-group">
     <label class="set-label" for="set-key">Claude API 키 (AI 곡 생성용 · 선택)</label>
     <input id="set-key" type="password" placeholder="sk-ant-..." autocomplete="off">
-    <p class="muted">키는 이 기기에만 저장됩니다. 키가 없어도 붙여넣기 모드는 사용할 수 있습니다.</p>
+    <p class="muted">선택한 제공자의 키만 사용됩니다. 키는 이 기기에만 저장됩니다.</p>
+  </div>
+  <div class="card set-group">
+    <label class="set-label" for="set-gemini">Gemini API 키</label>
+    <input id="set-gemini" type="password" placeholder="AIza..." autocomplete="off">
+    <p class="muted">aistudio.google.com에서 Google 계정으로 무료 발급. 키는 이 기기에만 저장됩니다.</p>
   </div>`;
 
 const $ = s => root.querySelector(s);
@@ -25,6 +37,8 @@ registerScreen('settings', () => {
   $('#set-theme').value = localStorage.getItem('st_theme') || '';
   $('#set-a4').value = localStorage.getItem('st_a4') || 440;
   $('#set-key').value = localStorage.getItem('st_api_key') || '';
+  $('#set-provider').value = localStorage.getItem('st_ai_provider') || 'claude';
+  $('#set-gemini').value = localStorage.getItem('st_gemini_key') || '';
 });
 
 $('#set-theme').addEventListener('change', e => {
@@ -38,3 +52,5 @@ $('#set-a4').addEventListener('change', e => {
   localStorage.setItem('st_a4', String(v));
 });
 $('#set-key').addEventListener('change', e => localStorage.setItem('st_api_key', e.target.value.trim()));
+$('#set-provider').addEventListener('change', e => localStorage.setItem('st_ai_provider', e.target.value));
+$('#set-gemini').addEventListener('change', e => localStorage.setItem('st_gemini_key', e.target.value.trim()));
