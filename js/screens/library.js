@@ -24,7 +24,7 @@ let songs = [];
 function render(filter = '') {
   const q = filter.trim().toLowerCase();
   const shown = songs.filter(s =>
-    !q || s.title.toLowerCase().includes(q) || (s.artist || '').toLowerCase().includes(q));
+    !q || String(s.title).toLowerCase().includes(q) || String(s.artist ?? '').toLowerCase().includes(q));
   $('#lib-empty').hidden = songs.length > 0;
   $('#lib-list').innerHTML = shown.map(s => `
     <li class="lib-item" data-id="${esc(s.id)}">

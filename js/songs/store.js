@@ -63,6 +63,13 @@ export async function importBackup(file) {
   const songs = JSON.parse(await file.text());
   if (!Array.isArray(songs)) throw new Error('백업 파일 형식이 아닙니다');
   let saved = 0;
-  for (const s of songs) if (s.id && s.title && s.sections) { await saveSong(s); saved++; }
+  for (const s of songs) {
+    if (typeof s?.id === 'string' && typeof s.title === 'string' && s.title.trim() &&
+        Array.isArray(s.sections)) {
+      if (s.artist != null && typeof s.artist !== 'string') s.artist = String(s.artist);
+      await saveSong(s);
+      saved++;
+    }
+  }
   return saved;
 }
