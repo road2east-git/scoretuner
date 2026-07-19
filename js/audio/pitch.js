@@ -1,3 +1,4 @@
+// 한계: 기음이 거의 없는 신호(짝수 배음만 강한 경우)는 옥타브 위로 오검출될 수 있음 — ACF 계열 고유 한계
 export function detectPitch(buf, sampleRate, opts = {}) {
   const { minFreq = 60, maxFreq = 500, rmsGate = 0.01 } = opts;
   const n = buf.length;

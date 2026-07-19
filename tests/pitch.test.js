@@ -24,6 +24,14 @@ test('배음 섞인 신호도 기음 검출', () => {
   assert.ok(Math.abs(detectPitch(buf, SR) - 110) < 1.5);
 });
 
+test('실사용 버퍼 크기 n=2048에서도 검출', () => {
+  assert.ok(Math.abs(detectPitch(sine(110, 2048), SR) - 110) < 0.5);
+});
+
+test('줄에서 벗어난 주파수(84Hz)도 정확히 검출', () => {
+  assert.ok(Math.abs(detectPitch(sine(84, 2048), SR) - 84) < 0.5);
+});
+
 test('무음이면 null', () => {
   assert.equal(detectPitch(new Float32Array(4096), SR), null);
 });
