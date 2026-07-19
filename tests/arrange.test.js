@@ -17,6 +17,19 @@ test('toEasy: 비허용 코드는 성질 폴백/근음 이동', () => {
   assert.equal(toEasy('C#m7'), 'Dm7');  // 근음 반음 이동 폴백
 });
 
+test('toEasy: 멱등성', () => {
+  for (const c of ['C', 'Am', 'G7', 'Bm7', 'F', 'Cmaj7', 'D#m7'])
+    assert.equal(toEasy(toEasy(c)), toEasy(c));
+});
+
+test('toEasy: 분수 코드는 베이스 생략', () => {
+  assert.equal(toEasy('G/B'), 'G');
+});
+
+test('toEasy: 근음 이동 시 동일 성질 정확 매칭 우선', () => {
+  assert.equal(toEasy('D#m7'), 'Dm7');   // Em(성질 폴백)보다 Dm7(정확 매칭) 우선
+});
+
 test('scoreKey: 전부 쉬운 키는 1', () => {
   assert.equal(scoreKey(['C', 'Am', 'F', 'G7'], 0), 1);
 });

@@ -14,7 +14,8 @@ function simplify(sym) {
   return c ? { root: c.root, quality: QUALITY_MAP[c.quality] ?? '' } : null;
 }
 
-const FALLBACKS = { m7: ['m'], 7: [''], '': ['7'], m: ['m7'] };
+// 폴백은 항상 성질을 단순화하는 방향만 허용 (복잡화 금지)
+const FALLBACKS = { m7: ['m'], 7: [''] };
 function easyVariant(c) {
   if (EASY.has(c.root + c.quality)) return c;
   for (const q of FALLBACKS[c.quality] || [])
@@ -27,9 +28,15 @@ export function toEasy(sym) {
   if (!s) return sym;
   const v = easyVariant(s);
   if (v) return displayChord(v.root, v.quality);
-  for (const d of [1, -1]) {   // 마지막 수단: 근음 반음 이동
-    const root = NOTES[(NOTES.indexOf(s.root) + d + 12) % 12];
-    const v2 = easyVariant({ root, quality: s.quality });
+  // 마지막 수단: 근음 반음 이동 — 동일 성질의 정확한 매칭을 폴백 매칭보다 우선
+  const shifted = [1, -1].map(d => ({
+    root: NOTES[(NOTES.indexOf(s.root) + d + 12) % 12],
+    quality: s.quality,
+  }));
+  for (const c of shifted)
+    if (EASY.has(c.root + c.quality)) return displayChord(c.root, c.quality);
+  for (const c of shifted) {
+    const v2 = easyVariant(c);
     if (v2) return displayChord(v2.root, v2.quality);
   }
   return displayChord(s.root, s.quality);
