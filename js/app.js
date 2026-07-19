@@ -1,15 +1,14 @@
-import './bus.js';
+import { screenHandlers, leaveHandlers } from './bus.js';
 
-const handlers = {}; // 화면 모듈이 등록하는 onShow 콜백
-
-export function registerScreen(name, onShow) { handlers[name] = onShow; }
-
+let current = null;
 function show(name, param) {
+  if (current) leaveHandlers[current]?.();
+  current = name;
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
   document.getElementById(`screen-${name}`)?.classList.add('active');
   document.querySelectorAll('#tabbar button').forEach(b =>
     b.classList.toggle('active', b.dataset.screen === name));
-  handlers[name]?.(param);
+  screenHandlers[name]?.(param);
   window.scrollTo(0, 0);
 }
 
