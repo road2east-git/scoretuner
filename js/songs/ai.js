@@ -141,6 +141,7 @@ sheet 규칙:
 - 악보가 아니거나 읽을 수 없으면 {"unreadable": true} 만 반환`;
 
 export async function transcribeSheetImages(files) {
+  if (!hasApiKey()) throw new Error('NO_KEY');   // 이미지 디코딩 전에 키부터 확인 (generateSong과 동일 계약)
   if (!files.length) throw new Error('BAD_RESPONSE');
   let images;
   try { images = await Promise.all([...files].slice(0, 4).map(fileToImagePart)); }
