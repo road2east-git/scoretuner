@@ -3,6 +3,7 @@ import './screens/tuner.js';
 import './screens/settings.js';
 import './screens/addsong.js';
 import './screens/library.js';
+import './screens/viewer.js';
 
 let current = null;
 function show(name, param) {
