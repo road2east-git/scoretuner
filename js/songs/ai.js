@@ -68,7 +68,87 @@ const AI_ERRORS = {
   UNKNOWN_SONG: 'AI가 이 곡을 알지 못합니다. 붙여넣기 모드를 이용해주세요.',
   API_429: 'API 사용 한도를 초과했습니다. 잠시 후 다시 시도해주세요.',
   BAD_RESPONSE: 'AI 응답을 해석하지 못했습니다. 다시 시도해주세요.',
+  UNREADABLE: '이미지에서 악보를 읽지 못했습니다. 더 선명한 이미지로 다시 시도해주세요.',
+  BAD_FILE: '이미지 파일을 열 수 없습니다. 다른 이미지로 시도해주세요.',
 };
 export function aiErrorMessage(err) {
   return AI_ERRORS[err?.message] || '곡 생성에 실패했습니다. 네트워크를 확인하거나 붙여넣기 모드를 이용해주세요.';
+}
+
+// 이미지 축소·압축 → base64 (긴 변 최대 1568px, JPEG 0.85 — Claude 비전 권장 크기)
+async function fileToImageBlock(file) {
+  const bitmap = await createImageBitmap(file);
+  const scale = Math.min(1, 1568 / Math.max(bitmap.width, bitmap.height));
+  const canvas = document.createElement('canvas');
+  canvas.width = Math.round(bitmap.width * scale);
+  canvas.height = Math.round(bitmap.height * scale);
+  canvas.getContext('2d').drawImage(bitmap, 0, 0, canvas.width, canvas.height);
+  bitmap.close();
+  const dataUrl = canvas.toDataURL('image/jpeg', 0.85);
+  return {
+    type: 'image',
+    source: { type: 'base64', media_type: 'image/jpeg', data: dataUrl.slice(dataUrl.indexOf(',') + 1) },
+  };
+}
+
+const TRANSCRIBE_PROMPT = `이 이미지는 기타 코드 악보입니다. 내용을 읽어서 반드시 아래 JSON 형식으로만 답하세요(설명 금지):
+{
+  "title": "곡 제목 (이미지에 있으면, 없으면 빈 문자열)",
+  "artist": "가수명 (이미지에 있으면, 없으면 빈 문자열)",
+  "timeSignature": "4/4 또는 3/4 또는 6/8 (불명확하면 4/4)",
+  "sheet": "악보 텍스트"
+}
+
+sheet 규칙:
+- [Verse 1], [Chorus] 같은 섹션 헤더가 이미지에 있으면 유지
+- 코드 줄을 먼저 쓰고, 바로 다음 줄에 해당 가사 줄 (코드는 공백으로 가사 위 위치에 맞춤)
+- 이미지에 보이는 코드와 가사를 그대로 옮길 것 (창작 금지)
+- 이미지가 여러 장이면 순서대로 이어서 하나의 악보로
+- 악보가 아니거나 읽을 수 없으면 {"unreadable": true} 만 반환`;
+
+export async function transcribeSheetImages(files) {
+  const key = localStorage.getItem('st_api_key');
+  if (!key) throw new Error('NO_KEY');
+  if (!files.length) throw new Error('BAD_RESPONSE');
+  let images;
+  try { images = await Promise.all([...files].slice(0, 4).map(fileToImageBlock)); }
+  catch { throw new Error('BAD_FILE'); }
+  const ac = new AbortController();
+  const timer = setTimeout(() => ac.abort(), 90_000);
+  let res;
+  try {
+    res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      signal: ac.signal,
+      headers: {
+        'content-type': 'application/json',
+        'x-api-key': key,
+        'anthropic-version': '2023-06-01',
+        'anthropic-dangerous-direct-browser-access': 'true',
+      },
+      body: JSON.stringify({
+        model: 'claude-sonnet-5',
+        max_tokens: 4000,
+        thinking: { type: 'disabled' },
+        messages: [{ role: 'user', content: [...images, { type: 'text', text: TRANSCRIBE_PROMPT }] }],
+      }),
+    });
+  } catch (e) {
+    throw new Error(e.name === 'AbortError' ? 'TIMEOUT' : 'NETWORK');
+  } finally {
+    clearTimeout(timer);
+  }
+  if (res.status === 401) throw new Error('BAD_KEY');
+  if (res.status === 429) throw new Error('API_429');
+  if (!res.ok) throw new Error('API_' + res.status);
+  const data = await res.json();
+  const text = data.content.map(b => b.text || '').join('');
+  const start = text.indexOf('{'), end = text.lastIndexOf('}');
+  if (start < 0 || end <= start) throw new Error('BAD_RESPONSE');
+  let json;
+  try { json = JSON.parse(text.slice(start, end + 1)); }
+  catch { throw new Error('BAD_RESPONSE'); }
+  if (json.unreadable) throw new Error('UNREADABLE');
+  if (!json.sheet) throw new Error('BAD_RESPONSE');
+  return json;   // { title, artist, timeSignature, sheet }
 }

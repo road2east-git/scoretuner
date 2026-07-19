@@ -29,6 +29,8 @@
 .add-actions { display:flex; gap:8px; }
 .add-actions .btn { flex:1; font-size:14px; }
 #add-paste { font-family:ui-monospace,Consolas,monospace; font-size:13px; white-space:pre; }
+.paste-head { display:flex; align-items:center; justify-content:space-between; gap:8px; }
+.btn-sm { padding:8px 12px; font-size:13px; }
 
 /* ---- 라이브러리 ---- */
 #lib-search { margin-bottom:14px; }
