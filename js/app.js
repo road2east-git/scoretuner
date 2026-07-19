@@ -1,4 +1,5 @@
 import { screenHandlers, leaveHandlers } from './bus.js';
+import './screens/tuner.js';
 
 let current = null;
 function show(name, param) {

@@ -1,0 +1,22 @@
+/* ---- 튜너 ---- */
+.tuner-display { text-align:center; padding:28px 16px; margin-bottom:20px; }
+.tuner-note { font-size:64px; font-weight:800; line-height:1; }
+.tuner-note #tn-oct { font-size:14px; font-weight:500; color:var(--text2); display:block; margin-top:8px; }
+.tuner-gauge { margin:22px auto 6px; max-width:340px; }
+.gauge-track { position:relative; height:8px; border-radius:4px; background:var(--surface2); }
+.gauge-track::after { content:''; position:absolute; left:50%; top:-4px; width:2px; height:16px; background:var(--line); }
+#gauge-needle { position:absolute; top:-5px; width:4px; height:18px; border-radius:2px;
+  background:var(--warn); left:50%; transform:translateX(-50%); transition:left .08s linear; }
+.tuner-display.ok #gauge-needle { background:var(--ok); }
+.gauge-labels { display:flex; justify-content:space-between; font-size:11px; color:var(--text2); margin-top:6px; }
+.tuner-guide { margin-top:16px; font-size:16px; font-weight:600; }
+.tuner-display.ok .tuner-guide { color:var(--ok); }
+.string-row { display:flex; gap:8px; justify-content:center; margin-bottom:14px; }
+.string-btn { flex:1; max-width:76px; padding:12px 0; border-radius:var(--radius);
+  background:var(--surface); border:1px solid var(--line); display:flex; flex-direction:column; gap:2px; align-items:center; }
+.string-btn.selected { background:var(--accent); color:var(--on-accent); border-color:var(--accent); }
+.string-no { font-size:18px; font-weight:800; }
+.string-note { font-size:11px; opacity:.75; }
+.center { text-align:center; }
+.card.warn { border-color:var(--warn); color:var(--warn); margin-top:14px;
+  display:flex; align-items:center; justify-content:space-between; gap:10px; }
