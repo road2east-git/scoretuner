@@ -24,3 +24,8 @@
 /* ---- 설정 ---- */
 .set-group { margin-bottom:14px; display:flex; flex-direction:column; gap:8px; }
 .set-label { font-size:13px; font-weight:700; color:var(--text2); }
+
+/* ---- 곡 추가 ---- */
+.add-actions { display:flex; gap:8px; }
+.add-actions .btn { flex:1; font-size:14px; }
+#add-paste { font-family:ui-monospace,Consolas,monospace; font-size:13px; white-space:pre; }
