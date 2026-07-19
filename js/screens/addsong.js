@@ -3,7 +3,7 @@ import { parseSheet } from '../songs/parser.js';
 import { arrangeSections } from '../music/arrange.js';
 import { PATTERNS, defaultPatternId } from '../music/patterns.js';
 import { saveSong } from '../songs/store.js';
-import { generateSong, hasApiKey, aiErrorMessage } from '../songs/ai.js';
+import { generateSong, hasApiKey, aiErrorMessage, transcribeSheetImages } from '../songs/ai.js';
 
 const root = document.getElementById('screen-add');
 root.innerHTML = `
@@ -17,7 +17,10 @@ root.innerHTML = `
     </div>
   </div>
   <div class="card set-group">
-    <label class="set-label" for="add-paste">코드+가사 붙여넣기</label>
+    <div class="paste-head">
+      <label class="set-label" for="add-paste">코드+가사 붙여넣기</label>
+      <label class="btn ghost btn-sm">🖼 이미지에서 읽기<input id="add-image" type="file" accept="image/*" multiple hidden></label>
+    </div>
     <textarea id="add-paste" rows="10" placeholder="검색한 악보의 코드와 가사를 복사해서 붙여넣으세요.&#10;&#10;예)&#10;C        G7&#10;나의 살던 고향은"></textarea>
     <label class="set-label" for="add-pattern">반주 패턴</label>
     <select id="add-pattern">${PATTERNS.map(p =>
@@ -103,5 +106,26 @@ $('#add-ai').addEventListener('click', async () => {
     status(aiErrorMessage(e), true);
   } finally {
     $('#add-ai').disabled = false;
+  }
+});
+
+$('#add-image').addEventListener('change', async e => {
+  const files = e.target.files;
+  if (!files.length) return;
+  if (!hasApiKey()) { e.target.value = ''; return status('설정에서 Claude API 키를 먼저 등록해주세요.', true); }
+  status(`이미지 ${files.length}장에서 악보를 읽는 중… (10~30초)`);
+  const label = e.target.closest('label');
+  label.style.pointerEvents = 'none';
+  try {
+    const r = await transcribeSheetImages(files);
+    $('#add-paste').value = r.sheet;
+    if (r.title && !$('#add-title').value.trim()) $('#add-title').value = r.title;
+    if (r.artist && !$('#add-artist').value.trim()) $('#add-artist').value = r.artist;
+    status('이미지에서 악보를 읽었습니다. 내용을 확인한 뒤 "분석하고 저장"을 눌러주세요.');
+  } catch (err) {
+    status(aiErrorMessage(err), true);
+  } finally {
+    label.style.pointerEvents = '';
+    e.target.value = '';
   }
 });

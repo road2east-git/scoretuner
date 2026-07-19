@@ -1,4 +1,4 @@
-const CACHE = 'scoretuner-v1';
+const CACHE = 'scoretuner-v2';
 const ASSETS = [
   './', 'index.html', 'manifest.json', 'icons/icon.svg',
   'css/base.css', 'css/screens.css',
