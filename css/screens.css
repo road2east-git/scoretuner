@@ -65,3 +65,25 @@
 .v-seg { display:inline-flex; flex-direction:column; }
 .v-seg i { font-style:normal; font-weight:800; color:var(--accent); font-size:.82em; min-height:1.4em; }
 .v-seg em { font-style:normal; font-size:1em; line-height:1.5; white-space:pre-wrap; }
+
+/* ---- 연주 모드 ---- */
+#screen-performance { padding:0; max-width:none; }
+.p-bar { position:sticky; top:0; z-index:5; display:flex; align-items:center; gap:14px;
+  background:var(--surface); border-bottom:1px solid var(--line); padding:10px 16px; }
+.p-bar b { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+#p-exit { color:var(--warn); font-weight:700; flex-shrink:0; }
+#p-next { margin-left:auto; flex-shrink:0; }
+.p-sheet { padding:20px 18px 45vh; }
+.p-sheet .v-seg em { font-size:20px; }
+.p-sheet .v-seg i { font-size:16px; min-height:24px; }
+.p-chord { padding:1px 6px; border-radius:6px; }
+.p-chord.now { background:var(--accent); color:var(--on-accent); }
+.p-tap { position:fixed; top:56px; bottom:0; width:18%; z-index:4; }
+.p-tap.left { left:0; } .p-tap.right { right:0; }
+/* 네이티브 가로 고정 실패 시 CSS 회전 폴백 (세로 화면에서만) */
+@media (orientation: portrait) {
+  body.landscape #screen-performance.active { position:fixed; inset:auto;
+    transform:rotate(90deg); transform-origin:center;
+    width:100vh; height:100vw; top:calc((100vh - 100vw)/2); left:calc((100vw - 100vh)/2);
+    overflow-y:auto; }
+}
