@@ -49,14 +49,14 @@ registerScreen('add', param => {
 
 $('#add-search').addEventListener('click', () => {
   if (!$('#add-title').value.trim()) return status('노래 제목을 입력해주세요.', true);
-  const q = `${$('#add-title').value} ${$('#add-artist').value} 기타 코드`.trim();
+  const q = [$('#add-title').value.trim(), $('#add-artist').value.trim(), '기타 코드'].filter(Boolean).join(' ');
   window.open(`https://www.google.com/search?q=${encodeURIComponent(q)}`, '_blank');
 });
 
-async function saveArranged({ title, artist, sections, timeSignature, patternId, source }) {
+async function saveArranged({ id, title, artist, sections, timeSignature, patternId, source }) {
   const arranged = arrangeSections(sections);
   const song = await saveSong({
-    id: editingId || undefined,
+    id: id || undefined,
     title, artist, timeSignature, patternId, source,
     semitones: arranged.semitones, capo: arranged.capo, keyShift: 0,
     sections: arranged.sections,
@@ -69,10 +69,11 @@ async function saveArranged({ title, artist, sections, timeSignature, patternId,
 $('#add-save').addEventListener('click', async () => {
   const title = $('#add-title').value.trim();
   if (!title) return status('노래 제목을 입력해주세요.', true);
+  const targetId = editingId;
   try {
     const sections = parseSheet($('#add-paste').value);
     await saveArranged({
-      title, artist: $('#add-artist').value.trim(), sections,
+      id: targetId, title, artist: $('#add-artist').value.trim(), sections,
       timeSignature: '4/4', patternId: $('#add-pattern').value, source: 'paste',
     });
   } catch (e) {
@@ -88,12 +89,13 @@ $('#add-ai').addEventListener('click', async () => {
   if (!hasApiKey()) return status('설정에서 Claude API 키를 먼저 등록해주세요.', true);
   status('AI가 악보를 만드는 중… (10~30초)');
   $('#add-ai').disabled = true;
+  const targetId = editingId;
   try {
     const r = await generateSong(title, $('#add-artist').value.trim());
     const sections = parseSheet(r.sheet);
     const moodMap = { calm: 'strum-ballad', ballad: 'arp-ballad', pop: 'strum-pop', waltz: 'strum-waltz' };
     await saveArranged({
-      title: r.title || title, artist: r.artist || $('#add-artist').value.trim(),
+      id: targetId, title: r.title || title, artist: r.artist || $('#add-artist').value.trim(),
       sections, timeSignature: r.timeSignature || '4/4',
       patternId: moodMap[r.mood] || defaultPatternId(r.timeSignature || '4/4'), source: 'ai',
     });

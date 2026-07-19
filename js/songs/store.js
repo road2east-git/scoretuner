@@ -30,7 +30,14 @@ async function withStore(mode, fn) {
 
 export async function saveSong(song) {
   song.updatedAt = Date.now();
-  if (!song.id) { song.id = crypto.randomUUID(); song.createdAt = song.updatedAt; }
+  if (!song.id) {
+    song.id = crypto.randomUUID();
+    song.createdAt = song.updatedAt;
+  } else if (!song.createdAt) {
+    // 편집 저장: 기존 레코드의 createdAt 보존
+    const prev = await getSong(song.id);
+    song.createdAt = prev?.createdAt ?? song.updatedAt;
+  }
   await withStore('readwrite', s => s.put(song));
   return song;
 }
