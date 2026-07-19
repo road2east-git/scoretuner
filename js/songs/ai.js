@@ -69,6 +69,7 @@ const AI_ERRORS = {
   API_429: 'API 사용 한도를 초과했습니다. 잠시 후 다시 시도해주세요.',
   BAD_RESPONSE: 'AI 응답을 해석하지 못했습니다. 다시 시도해주세요.',
   UNREADABLE: '이미지에서 악보를 읽지 못했습니다. 더 선명한 이미지로 다시 시도해주세요.',
+  BAD_FILE: '이미지 파일을 열 수 없습니다. 다른 이미지로 시도해주세요.',
 };
 export function aiErrorMessage(err) {
   return AI_ERRORS[err?.message] || '곡 생성에 실패했습니다. 네트워크를 확인하거나 붙여넣기 모드를 이용해주세요.';
@@ -109,7 +110,9 @@ export async function transcribeSheetImages(files) {
   const key = localStorage.getItem('st_api_key');
   if (!key) throw new Error('NO_KEY');
   if (!files.length) throw new Error('BAD_RESPONSE');
-  const images = await Promise.all([...files].slice(0, 4).map(fileToImageBlock));
+  let images;
+  try { images = await Promise.all([...files].slice(0, 4).map(fileToImageBlock)); }
+  catch { throw new Error('BAD_FILE'); }
   const ac = new AbortController();
   const timer = setTimeout(() => ac.abort(), 90_000);
   let res;

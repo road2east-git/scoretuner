@@ -113,9 +113,14 @@ $('#add-image').addEventListener('change', async e => {
   const files = e.target.files;
   if (!files.length) return;
   if (!hasApiKey()) { e.target.value = ''; return status('설정에서 Claude API 키를 먼저 등록해주세요.', true); }
-  status(`이미지 ${files.length}장에서 악보를 읽는 중… (10~30초)`);
+  const total = files.length;
+  const used = Math.min(total, 4);
+  status(used < total
+    ? `이미지가 많아 처음 ${used}장만 읽습니다… (10~30초)`
+    : `이미지 ${used}장에서 악보를 읽는 중… (10~30초)`);
   const label = e.target.closest('label');
   label.style.pointerEvents = 'none';
+  label.style.opacity = '.5';
   try {
     const r = await transcribeSheetImages(files);
     $('#add-paste').value = r.sheet;
@@ -126,6 +131,7 @@ $('#add-image').addEventListener('change', async e => {
     status(aiErrorMessage(err), true);
   } finally {
     label.style.pointerEvents = '';
+    label.style.opacity = '';
     e.target.value = '';
   }
 });
