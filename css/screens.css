@@ -29,3 +29,13 @@
 .add-actions { display:flex; gap:8px; }
 .add-actions .btn { flex:1; font-size:14px; }
 #add-paste { font-family:ui-monospace,Consolas,monospace; font-size:13px; white-space:pre; }
+
+/* ---- 라이브러리 ---- */
+#lib-search { margin-bottom:14px; }
+.lib-list { list-style:none; padding:0; display:flex; flex-direction:column; gap:8px; }
+.lib-item { display:flex; align-items:center; background:var(--surface); border:1px solid var(--line);
+  border-radius:var(--radius); padding:14px 16px; cursor:pointer; }
+.lib-info { flex:1; display:flex; flex-direction:column; gap:2px; min-width:0; }
+.lib-info b { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.lib-del { font-size:16px; opacity:.55; padding:6px; }
+.lib-tools { display:flex; gap:8px; margin-top:18px; justify-content:center; }

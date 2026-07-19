@@ -2,6 +2,7 @@ import { screenHandlers, leaveHandlers } from './bus.js';
 import './screens/tuner.js';
 import './screens/settings.js';
 import './screens/addsong.js';
+import './screens/library.js';
 
 let current = null;
 function show(name, param) {
