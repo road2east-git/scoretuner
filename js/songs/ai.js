@@ -20,20 +20,31 @@ sheet 규칙:
 export async function generateSong(title, artist) {
   const key = localStorage.getItem('st_api_key');
   if (!key) throw new Error('NO_KEY');
-  const res = await fetch('https://api.anthropic.com/v1/messages', {
-    method: 'POST',
-    headers: {
-      'content-type': 'application/json',
-      'x-api-key': key,
-      'anthropic-version': '2023-06-01',
-      'anthropic-dangerous-direct-browser-access': 'true',
-    },
-    body: JSON.stringify({
-      model: 'claude-sonnet-5',
-      max_tokens: 4000,
-      messages: [{ role: 'user', content: PROMPT(title, artist) }],
-    }),
-  });
+  const ac = new AbortController();
+  const timer = setTimeout(() => ac.abort(), 60_000);
+  let res;
+  try {
+    res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      signal: ac.signal,
+      headers: {
+        'content-type': 'application/json',
+        'x-api-key': key,
+        'anthropic-version': '2023-06-01',
+        'anthropic-dangerous-direct-browser-access': 'true',
+      },
+      body: JSON.stringify({
+        model: 'claude-sonnet-5',
+        max_tokens: 4000,
+        thinking: { type: 'disabled' },
+        messages: [{ role: 'user', content: PROMPT(title, artist) }],
+      }),
+    });
+  } catch (e) {
+    throw new Error(e.name === 'AbortError' ? 'TIMEOUT' : 'NETWORK');
+  } finally {
+    clearTimeout(timer);
+  }
   if (res.status === 401) throw new Error('BAD_KEY');
   if (res.status === 429) throw new Error('API_429');
   if (!res.ok) throw new Error('API_' + res.status);
@@ -51,6 +62,8 @@ export async function generateSong(title, artist) {
 
 const AI_ERRORS = {
   NO_KEY: '설정에서 Claude API 키를 먼저 등록해주세요.',
+  TIMEOUT: '응답 시간이 초과되었습니다. 다시 시도해주세요.',
+  NETWORK: '네트워크 연결을 확인해주세요.',
   BAD_KEY: 'API 키가 올바르지 않습니다. 설정에서 확인해주세요.',
   UNKNOWN_SONG: 'AI가 이 곡을 알지 못합니다. 붙여넣기 모드를 이용해주세요.',
   API_429: 'API 사용 한도를 초과했습니다. 잠시 후 다시 시도해주세요.',
