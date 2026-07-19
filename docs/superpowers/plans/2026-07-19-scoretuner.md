@@ -395,9 +395,10 @@ test('bestArrangement: B-E-F# 진행은 +1 이조로 해결', () => {
 });
 
 test('bestArrangement: 카포 제안', () => {
-  const r = bestArrangement(['Eb', 'Ab', 'Bb']);   // -3 이조 → C, F, G
-  assert.equal(r.semitones, -3);
-  assert.equal(r.capo, 3);
+  // -1 이조 → D, G, A (전부 허용). -3(C,F,G)도 만점이지만 |−1|이 원곡 키에 더 가까워 선택됨
+  const r = bestArrangement(['Eb', 'Ab', 'Bb']);
+  assert.equal(r.semitones, -1);
+  assert.equal(r.capo, 1);
 });
 
 test('arrangeSections: 섹션 구조 유지하며 편곡', () => {
