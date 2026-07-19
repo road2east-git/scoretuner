@@ -5,9 +5,10 @@ const SECTION_RE = /^\s*[\[(]?\s*((?:pre-?)?(?:intro|verse|chorus|bridge|outro|i
 const cleanToken = t => t.replace(/[|,.]/g, '');
 
 export function isChordLine(line) {
-  const tokens = line.trim().split(/\s+/).filter(Boolean);
+  if (typeof line !== 'string') return false;
+  const tokens = line.trim().split(/\s+/).map(cleanToken).filter(Boolean);
   if (!tokens.length) return false;
-  const ok = tokens.filter(t => parseChord(cleanToken(t))).length;
+  const ok = tokens.filter(t => parseChord(t)).length;
   return ok / tokens.length >= 0.6;
 }
 

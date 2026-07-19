@@ -37,6 +37,16 @@ test('parseSheet: 가사 없는 코드 줄(간주)', () => {
   assert.equal(sections[0].lines[0].chords.length, 4);
 });
 
+test('isChordLine: 막대 표기 코드 줄 인식', () => {
+  assert.equal(isChordLine('| C | G | Am | F |'), true);
+  assert.equal(isChordLine(null), false);
+});
+
+test('parseSheet: 막대 표기 줄의 코드 추출', () => {
+  const sections = parseSheet('간주\n| C | G | Am | F |');
+  assert.deepEqual(sections[0].lines[0].chords.map(c => c.chord), ['C', 'G', 'Am', 'F']);
+});
+
 test('parseSheet: 인식 불가 텍스트는 예외', () => {
   assert.throws(() => parseSheet('   \n  \n'));
 });
