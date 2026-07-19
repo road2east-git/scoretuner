@@ -15,7 +15,7 @@ export function chordSVG(name) {
   const frets = CHORD_SHAPES[name];
   if (!frets) return '';
   const fretted = frets.filter(f => f > 0);
-  const baseFret = fretted.length && Math.min(...fretted) > 4 ? Math.min(...fretted) : 1;
+  const baseFret = fretted.length && Math.max(...fretted) > 4 ? Math.min(...fretted) : 1;
   const W = 64, H = 78, left = 10, top = 20, cw = (W - 20) / 5, rh = (H - top - 6) / 4;
   let s = `<svg class="chord-svg" viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg">`;
   s += `<text x="${W / 2}" y="11" text-anchor="middle" font-size="11" font-weight="700" fill="currentColor">${name}</text>`;
