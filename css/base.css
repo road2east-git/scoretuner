@@ -1,0 +1,36 @@
+:root {
+  --bg:#fafafa; --surface:#fff; --surface2:#f0f0f2; --text:#18181b; --text2:#71717a;
+  --accent:#2563eb; --on-accent:#fff; --ok:#16a34a; --warn:#dc2626; --line:#e4e4e7;
+  --radius:14px; --font:'Pretendard Variable',Pretendard,system-ui,sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme=light]) {
+    --bg:#0f1115; --surface:#161a21; --surface2:#1e222b; --text:#f4f4f5; --text2:#8b93a5;
+    --accent:#4ade80; --on-accent:#0f1115; --ok:#4ade80; --warn:#f87171; --line:#262b35;
+  }
+}
+:root[data-theme=dark] {
+  --bg:#0f1115; --surface:#161a21; --surface2:#1e222b; --text:#f4f4f5; --text2:#8b93a5;
+  --accent:#4ade80; --on-accent:#0f1115; --ok:#4ade80; --warn:#f87171; --line:#262b35;
+}
+* { box-sizing:border-box; margin:0; -webkit-tap-highlight-color:transparent; }
+html, body { height:100%; }
+body { background:var(--bg); color:var(--text); font-family:var(--font); overscroll-behavior:none; }
+button { font:inherit; color:inherit; background:none; border:none; cursor:pointer; }
+input, textarea, select { font:inherit; color:var(--text); background:var(--surface2);
+  border:1px solid var(--line); border-radius:10px; padding:12px 14px; width:100%; }
+.screen { display:none; padding:20px 16px 84px; max-width:760px; margin:0 auto; }
+.screen.active { display:block; }
+h1 { font-size:20px; font-weight:700; margin-bottom:16px; }
+.btn { display:inline-flex; align-items:center; justify-content:center; gap:6px;
+  background:var(--accent); color:var(--on-accent); font-weight:700;
+  border-radius:var(--radius); padding:13px 20px; }
+.btn.ghost { background:var(--surface2); color:var(--text); }
+.card { background:var(--surface); border:1px solid var(--line); border-radius:var(--radius); padding:16px; }
+.muted { color:var(--text2); font-size:13px; }
+#tabbar { position:fixed; bottom:0; left:0; right:0; display:flex; z-index:10;
+  background:var(--surface); border-top:1px solid var(--line);
+  padding-bottom:env(safe-area-inset-bottom); }
+#tabbar button { flex:1; padding:14px 0 12px; color:var(--text2); font-size:13px; }
+#tabbar button.active { color:var(--accent); font-weight:700; }
+body.fullscreen #tabbar { display:none; }
