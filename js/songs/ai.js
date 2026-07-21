@@ -36,7 +36,7 @@ async function callClaude(key, parts, signal) {
       'anthropic-dangerous-direct-browser-access': 'true',
     },
     body: JSON.stringify({
-      model: 'claude-sonnet-5', max_tokens: 4000, thinking: { type: 'disabled' },
+      model: 'claude-sonnet-5', max_tokens: 8000, thinking: { type: 'disabled' },
       messages: [{ role: 'user', content }],
     }),
   });
@@ -57,7 +57,7 @@ async function callGemini(key, parts, signal) {
     headers: { 'content-type': 'application/json', 'x-goog-api-key': key },
     body: JSON.stringify({
       contents: [{ parts: geminiParts }],
-      generationConfig: { maxOutputTokens: 4000, thinkingConfig: { thinkingBudget: 0 } },
+      generationConfig: { maxOutputTokens: 8192, responseMimeType: 'application/json', thinkingConfig: { thinkingBudget: 0 } },
     }),
   });
   if (res.status === 400 || res.status === 403) throw new Error('BAD_KEY');
@@ -112,10 +112,10 @@ export function aiErrorMessage(err) {
   return AI_ERRORS[err?.message] || '곡 생성에 실패했습니다. 네트워크를 확인하거나 붙여넣기 모드를 이용해주세요.';
 }
 
-// 이미지 축소·압축 → base64 (긴 변 최대 1568px, JPEG 0.85 — Claude 비전 권장 크기)
+// 이미지 축소·압축 → base64 (긴 변 최대 2048px, JPEG 0.85 — 조밀한 악보의 작은 가사 보존)
 async function fileToImagePart(file) {
   const bitmap = await createImageBitmap(file);
-  const scale = Math.min(1, 1568 / Math.max(bitmap.width, bitmap.height));
+  const scale = Math.min(1, 2048 / Math.max(bitmap.width, bitmap.height));
   const canvas = document.createElement('canvas');
   canvas.width = Math.round(bitmap.width * scale);
   canvas.height = Math.round(bitmap.height * scale);
@@ -137,7 +137,9 @@ sheet 규칙:
 - [Verse 1], [Chorus] 같은 섹션 헤더가 이미지에 있으면 유지
 - 코드 줄을 먼저 쓰고, 바로 다음 줄에 해당 가사 줄 (코드는 공백으로 가사 위 위치에 맞춤)
 - 이미지에 보이는 코드와 가사를 그대로 옮길 것 (창작 금지)
+- 페이지 번호, 워터마크, 사이트 주소, 광고 문구 등 악보와 무관한 텍스트는 제외
 - 이미지가 여러 장이면 순서대로 이어서 하나의 악보로
+- JSON 문자열 안의 줄바꿈은 반드시 \\n 으로 이스케이프
 - 악보가 아니거나 읽을 수 없으면 {"unreadable": true} 만 반환`;
 
 export async function transcribeSheetImages(files) {

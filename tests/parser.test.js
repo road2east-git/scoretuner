@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { isChordLine, parseSheet } from '../js/songs/parser.js';
+import { isChordLine, parseSheet, sheetToText } from '../js/songs/parser.js';
 
 test('isChordLine: 코드 줄 판별', () => {
   assert.equal(isChordLine('C        G7       Am'), true);
@@ -49,4 +49,23 @@ test('parseSheet: 막대 표기 줄의 코드 추출', () => {
 
 test('parseSheet: 인식 불가 텍스트는 예외', () => {
   assert.throws(() => parseSheet('   \n  \n'));
+});
+
+test('sheetToText: 섹션/코드/가사 왕복 복원', () => {
+  const text = [
+    '[Verse 1]',
+    'C        G7',
+    '나의 살던 고향은',
+    'F        C',
+    '꽃피는 산골',
+  ].join('\n');
+  const sections = parseSheet(text);
+  const restored = sheetToText(sections);
+  assert.deepEqual(parseSheet(restored), sections);
+});
+
+test('sheetToText: 간주(가사 없는 코드 줄)와 가사 전용 줄', () => {
+  const sections = parseSheet('간주\nC  G  Am  F\n후렴\n라라라');
+  const restored = sheetToText(sections);
+  assert.deepEqual(parseSheet(restored), sections);
 });

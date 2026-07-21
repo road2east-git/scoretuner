@@ -1,5 +1,5 @@
 import { navigate, registerScreen } from '../bus.js';
-import { parseSheet } from '../songs/parser.js';
+import { parseSheet, sheetToText } from '../songs/parser.js';
 import { arrangeSections } from '../music/arrange.js';
 import { PATTERNS, defaultPatternId } from '../music/patterns.js';
 import { saveSong } from '../songs/store.js';
@@ -21,6 +21,7 @@ root.innerHTML = `
       <label class="set-label" for="add-paste">코드+가사 붙여넣기</label>
       <label class="btn ghost btn-sm">🖼 이미지에서 읽기<input id="add-image" type="file" accept="image/*" multiple hidden></label>
     </div>
+    <div id="add-thumbs" class="add-thumbs" hidden></div>
     <textarea id="add-paste" rows="10" placeholder="검색한 악보의 코드와 가사를 복사해서 붙여넣으세요.&#10;&#10;예)&#10;C        G7&#10;나의 살던 고향은"></textarea>
     <label class="set-label" for="add-pattern">반주 패턴</label>
     <select id="add-pattern">${PATTERNS.map(p =>
@@ -35,18 +36,27 @@ const status = (msg, isErr) => {
   $('#add-status').style.color = isErr ? 'var(--warn)' : 'var(--text2)';
 };
 
+function clearThumbs() {
+  const thumbs = $('#add-thumbs');
+  thumbs.querySelectorAll('img').forEach(img => URL.revokeObjectURL(img.src));
+  thumbs.innerHTML = '';
+  thumbs.hidden = true;
+}
+
 // 편집 모드: viewer에서 { edit: song } 파라미터로 진입 시 기존 곡 정보 프리필
 let editingId = null;
 registerScreen('add', param => {
   status('');
   editingId = null;
+  clearThumbs();
   if (param?.edit) {
     const s = param.edit;
     editingId = s.id;
     $('#add-title').value = s.title;
     $('#add-artist').value = s.artist || '';
     $('#add-pattern').value = s.patternId;
-    status('편집 모드: 악보 텍스트를 다시 붙여넣으면 내용이 교체됩니다.');
+    $('#add-paste').value = sheetToText(s.sections);
+    status('편집 모드: 아래 악보를 수정한 뒤 "분석하고 저장"을 누르세요.');
   }
 });
 
@@ -112,9 +122,25 @@ $('#add-ai').addEventListener('click', async () => {
 $('#add-image').addEventListener('change', async e => {
   const files = e.target.files;
   if (!files.length) return;
-  if (!hasApiKey()) { e.target.value = ''; return status('설정에서 AI 제공자의 API 키를 먼저 등록해주세요.', true); }
   const total = files.length;
   const used = Math.min(total, 4);
+
+  const thumbs = $('#add-thumbs');
+  thumbs.querySelectorAll('img').forEach(img => URL.revokeObjectURL(img.src));
+  thumbs.innerHTML = '';
+  [...files].slice(0, 4).forEach(f => {
+    const img = document.createElement('img');
+    img.src = URL.createObjectURL(f);
+    img.alt = f.name;
+    thumbs.appendChild(img);
+  });
+  const count = document.createElement('span');
+  count.className = 'muted';
+  count.textContent = used < total ? `${used}/${total}장 사용` : `${used}장 업로드됨`;
+  thumbs.appendChild(count);
+  thumbs.hidden = false;
+
+  if (!hasApiKey()) { e.target.value = ''; return status('설정에서 AI 제공자의 API 키를 먼저 등록해주세요.', true); }
   status(used < total
     ? `이미지가 많아 처음 ${used}장만 읽습니다… (10~30초)`
     : `이미지 ${used}장에서 악보를 읽는 중… (10~30초)`);

@@ -51,3 +51,26 @@ export function parseSheet(text) {
     throw new Error('악보 형식을 인식하지 못했습니다');
   return sections;
 }
+
+// parseSheet의 역변환: 섹션 구조를 코드줄/가사줄 텍스트로 복원 (편집 모드 프리필용)
+export function sheetToText(sections) {
+  const out = [];
+  for (const s of sections) {
+    out.push(`[${s.name}]`);
+    for (const l of s.lines) {
+      if (l.chords.length) {
+        let line = '';
+        for (const c of l.chords) {
+          if (line.length < c.position) line = line.padEnd(c.position, ' ');
+          else if (line.length > 0) line += ' ';
+          line += c.chord;
+        }
+        out.push(line);
+      }
+      if (l.lyrics) out.push(l.lyrics);
+      else if (!l.chords.length) out.push(l.lyrics);
+    }
+    out.push('');
+  }
+  return out.join('\n').trimEnd();
+}
