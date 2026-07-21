@@ -31,6 +31,8 @@
 #add-paste { font-family:ui-monospace,Consolas,monospace; font-size:13px; white-space:pre; }
 .paste-head { display:flex; align-items:center; justify-content:space-between; gap:8px; }
 .btn-sm { padding:8px 12px; font-size:13px; }
+.add-thumbs { display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
+.add-thumbs img { width:56px; height:56px; object-fit:cover; border-radius:8px; border:1px solid var(--line); }
 
 /* ---- 라이브러리 ---- */
 #lib-search { margin-bottom:14px; }
