@@ -32,6 +32,8 @@ export function parseSheet(text) {
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i];
     if (!line.trim()) continue;
+    const br = line.trim().match(/^\[(.+)\]$/);
+    if (br) { open(br[1].trim()); continue; }
     const sec = line.trim().match(SECTION_RE);
     if (sec) { open(line.replace(/[\[\]():：]/g, '').trim()); continue; }
     if (!cur) open('Verse');

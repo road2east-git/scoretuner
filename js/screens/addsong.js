@@ -125,9 +125,8 @@ $('#add-image').addEventListener('change', async e => {
   const total = files.length;
   const used = Math.min(total, 4);
 
+  clearThumbs();
   const thumbs = $('#add-thumbs');
-  thumbs.querySelectorAll('img').forEach(img => URL.revokeObjectURL(img.src));
-  thumbs.innerHTML = '';
   [...files].slice(0, 4).forEach(f => {
     const img = document.createElement('img');
     img.src = URL.createObjectURL(f);
