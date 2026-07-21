@@ -5,6 +5,18 @@ function apiKey() {
 }
 export function hasApiKey() { return !!apiKey(); }
 
+// 마지막 실패의 상세 원인 (진단 표시용 — 오류 메시지 옆에 짧게 노출)
+let lastDetail = '';
+export function aiErrorDetail() { return lastDetail; }
+function setDetail(d) { lastDetail = String(d || '').replace(/\s+/g, ' ').slice(0, 160); }
+
+async function readErrorDetail(res) {
+  try {
+    const body = await res.text();
+    try { return JSON.parse(body)?.error?.message || body; } catch { return body; }
+  } catch { return ''; }
+}
+
 const PROMPT = (title, artist) => `당신은 기타 반주 편곡가입니다. 노래 "${title}"${artist ? ` (가수: ${artist})` : ''}의 기타 코드 악보를 만들어주세요.
 
 반드시 아래 JSON 형식으로만 답하세요(설명 금지):
@@ -42,9 +54,14 @@ async function callClaude(key, parts, signal) {
   });
   if (res.status === 401) throw new Error('BAD_KEY');
   if (res.status === 429) throw new Error('API_429');
-  if (!res.ok) throw new Error('API_' + res.status);
+  if (!res.ok) { setDetail(await readErrorDetail(res)); throw new Error('API_' + res.status); }
   const data = await res.json();
-  return data.content.map(b => b.text || '').join('');
+  const text = data.content.map(b => b.text || '').join('');
+  if (!text) {
+    setDetail(`stop_reason=${data.stop_reason}`);
+    throw new Error(data.stop_reason === 'max_tokens' ? 'TRUNCATED' : 'BAD_RESPONSE');
+  }
+  return text;
 }
 
 async function callGemini(key, parts, signal) {
@@ -60,17 +77,33 @@ async function callGemini(key, parts, signal) {
       generationConfig: { maxOutputTokens: 8192, responseMimeType: 'application/json', thinkingConfig: { thinkingBudget: 0 } },
     }),
   });
-  if (res.status === 400 || res.status === 403) throw new Error('BAD_KEY');
+  if (res.status === 400 || res.status === 403) {
+    // Gemini는 400을 키 오류 외에도 사용 — 본문을 보고 구분
+    const detail = await readErrorDetail(res);
+    setDetail(detail);
+    throw new Error(/api key|api_key|permission/i.test(detail) ? 'BAD_KEY' : 'API_' + res.status);
+  }
   if (res.status === 429) throw new Error('API_429');
-  if (!res.ok) throw new Error('API_' + res.status);
+  if (!res.ok) { setDetail(await readErrorDetail(res)); throw new Error('API_' + res.status); }
   const data = await res.json();
-  return (data.candidates?.[0]?.content?.parts || []).map(p => p.text || '').join('');
+  const cand = data.candidates?.[0];
+  const text = (cand?.content?.parts || []).map(p => p.text || '').join('');
+  if (!text) {
+    const finish = cand?.finishReason || data.promptFeedback?.blockReason || '';
+    setDetail(`finishReason=${finish}`);
+    if (finish === 'RECITATION') throw new Error('RECITATION');
+    if (finish === 'MAX_TOKENS') throw new Error('TRUNCATED');
+    if (finish === 'SAFETY' || data.promptFeedback?.blockReason) throw new Error('BLOCKED');
+    throw new Error('BAD_RESPONSE');
+  }
+  return text;
 }
 
-const KNOWN = /^(NO_KEY|BAD_KEY|API_\d+)$/;
+const KNOWN = /^(NO_KEY|BAD_KEY|API_\d+|RECITATION|BLOCKED|TRUNCATED|BAD_RESPONSE)$/;
 async function callAI(parts, timeoutMs) {
   const key = apiKey();
   if (!key) throw new Error('NO_KEY');
+  lastDetail = '';
   const ac = new AbortController();
   const timer = setTimeout(() => ac.abort(), timeoutMs);
   try {
@@ -107,6 +140,9 @@ const AI_ERRORS = {
   BAD_RESPONSE: 'AI 응답을 해석하지 못했습니다. 다시 시도해주세요.',
   UNREADABLE: '이미지에서 악보를 읽지 못했습니다. 더 선명한 이미지로 다시 시도해주세요.',
   BAD_FILE: '이미지 파일을 열 수 없습니다. 다른 이미지로 시도해주세요.',
+  RECITATION: 'Gemini가 가사 저작권 보호 정책으로 응답을 차단했습니다. 설정에서 제공자를 Claude로 바꿔 시도해주세요.',
+  BLOCKED: 'AI가 안전 정책으로 응답을 차단했습니다. 다른 이미지나 다른 제공자로 시도해주세요.',
+  TRUNCATED: '악보가 너무 길어 응답이 잘렸습니다. 이미지를 나눠서 시도해주세요.',
 };
 export function aiErrorMessage(err) {
   return AI_ERRORS[err?.message] || '곡 생성에 실패했습니다. 네트워크를 확인하거나 붙여넣기 모드를 이용해주세요.';

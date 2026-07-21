@@ -3,7 +3,10 @@ import { parseSheet, sheetToText } from '../songs/parser.js';
 import { arrangeSections } from '../music/arrange.js';
 import { PATTERNS, defaultPatternId } from '../music/patterns.js';
 import { saveSong } from '../songs/store.js';
-import { generateSong, hasApiKey, aiErrorMessage, transcribeSheetImages } from '../songs/ai.js';
+import { generateSong, hasApiKey, aiErrorMessage, aiErrorDetail, transcribeSheetImages } from '../songs/ai.js';
+
+// 오류 메시지 + 진단 상세(있으면)를 함께 표시
+const aiFail = err => aiErrorMessage(err) + (aiErrorDetail() ? ` [상세: ${aiErrorDetail()}]` : '');
 
 const root = document.getElementById('screen-add');
 root.innerHTML = `
@@ -113,7 +116,7 @@ $('#add-ai').addEventListener('click', async () => {
       patternId: moodMap[r.mood] || defaultPatternId(r.timeSignature || '4/4'), source: 'ai',
     });
   } catch (e) {
-    status(aiErrorMessage(e), true);
+    status(aiFail(e), true);
   } finally {
     $('#add-ai').disabled = false;
   }
@@ -153,7 +156,7 @@ $('#add-image').addEventListener('change', async e => {
     if (r.artist && !$('#add-artist').value.trim()) $('#add-artist').value = r.artist;
     status('이미지에서 악보를 읽었습니다. 내용을 확인한 뒤 "분석하고 저장"을 눌러주세요.');
   } catch (err) {
-    status(aiErrorMessage(err), true);
+    status(aiFail(err), true);
   } finally {
     label.style.pointerEvents = '';
     label.style.opacity = '';
